@@ -2,5 +2,23 @@
 name = "rustris"
 version = "0.1.0"
 edition = "2024"
+authors = ["lofi-J"]
+description = "Terminal-based Tetris game written in Rust"
+repository = "https://github.com/lofi-J/Rustris"
+license = "MIT"
+keywords = ["tetris", "terminal", "game", "rust"]
+categories = ["games"]
+
+[profile.release]
+opt-level = 3          
+lto = true             
+codegen-units = 1      
+strip = true           
+
+[profile.dev]
+opt-level = 0          
+lto = false            
+codegen-units = 100    
+strip = false          
 
 [dependencies]
