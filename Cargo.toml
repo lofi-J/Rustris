@@ -22,3 +22,4 @@ codegen-units = 100
 strip = false          
 
 [dependencies]
+crossterm = "0.9"
