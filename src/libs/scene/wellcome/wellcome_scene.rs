@@ -8,9 +8,10 @@ use crossterm::{
     terminal::{self, ClearType},
 };
 
-use crate::libs::scene::wellcome::renderer::renderer;
 use crate::libs::state::state::{State, StateController};
 use crate::libs::utils::terminal::enable_raw_mode;
+
+use super::renderer::renderer;
 
 pub fn wellcome(state: &mut StateController) {
     // 터미널 raw 모드 활성화 (키 입력을 직접 처리)

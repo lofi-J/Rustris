@@ -1,5 +1,11 @@
+use std::io;
+
 use crate::libs::state::state::StateController;
 
-pub fn fix_resolution(state: &mut StateController) {
-    println!("minimum resolution : 10 x 20");
+use super::renderer::renderer;
+
+pub fn fix_resolution(_state: &mut StateController) {
+    let mut stdout = io::stdout();
+
+    renderer(&mut stdout);
 }

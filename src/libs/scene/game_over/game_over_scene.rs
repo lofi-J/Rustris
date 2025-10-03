@@ -1,5 +1,13 @@
+use std::io;
+
 use crate::libs::state::state::StateController;
 
-pub fn game_over(state: &mut StateController) {
+use super::renderer::renderer;
+
+pub fn game_over(_state: &mut StateController) {
     println!("Game Over");
+
+    let mut stdout = io::stdout();
+
+    renderer(&mut stdout);
 }

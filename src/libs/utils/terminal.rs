@@ -1,7 +1,7 @@
 use std::io::Stdout;
 
 use crossterm::{
-    execute,
+    cursor, execute,
     terminal::{self, ClearType},
 };
 
@@ -21,7 +21,13 @@ pub fn enable_raw_mode(state: &mut StateController) {
 
 /// terminal clear
 pub fn clear_terminal(stdout: &mut Stdout) {
-    execute!(stdout, terminal::Clear(ClearType::All),).unwrap();
+    execute!(
+        stdout,
+        terminal::Clear(ClearType::All),
+        cursor::MoveTo(0, 0),
+        cursor::Hide
+    )
+    .unwrap();
 }
 
 /// get terminal size as (width: u16, height:u16)

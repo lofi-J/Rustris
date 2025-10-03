@@ -1,5 +1,13 @@
+use std::io;
+
 use crate::libs::state::state::StateController;
 
-pub fn play_tetris(state: &mut StateController) {
+use super::renderer::renderer;
+
+pub fn game(_tate: &mut StateController) {
     println!("Playing Tetris");
+
+    let mut stdout = io::stdout();
+
+    renderer(&mut stdout);
 }

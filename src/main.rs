@@ -19,7 +19,7 @@ fn main() {
         match current_state {
             State::Wellcome => wellcome_scene::wellcome(&mut state),
             State::FixResolution => fix_resolution_scene::fix_resolution(&mut state),
-            State::Play => game_scene::play_tetris(&mut state),
+            State::Play => game_scene::game(&mut state),
             State::GameOver => game_over_scene::game_over(&mut state),
             State::Exit => break,
         }
