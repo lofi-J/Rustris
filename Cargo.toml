@@ -22,4 +22,4 @@ codegen-units = 100
 strip = false          
 
 [dependencies]
-crossterm = "0.9"
+crossterm = "0.29.0"
