@@ -1,7 +1,7 @@
-pub mod fix_resolution_scene;
+pub mod fix_resolution;
 
-pub mod game_over_scene;
+pub mod game_over;
 
-pub mod game_scene;
+pub mod game;
 
-pub mod wellcome_scene;
+pub mod wellcome;

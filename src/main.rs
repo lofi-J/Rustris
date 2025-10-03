@@ -1,9 +1,14 @@
 mod libs;
 
 use libs::{scene, state};
-
-use scene::{fix_resolution_scene, game_over_scene, game_scene, wellcome_scene};
 use state::state::{State, StateController};
+
+use scene::{fix_resolution, game, game_over, wellcome};
+
+use fix_resolution::fix_resolution_scene;
+use game::game_scene;
+use game_over::game_over_scene;
+use wellcome::wellcome_scene;
 
 fn main() {
     let mut state = StateController::new();
