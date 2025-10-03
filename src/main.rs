@@ -16,7 +16,9 @@ fn main() {
             State::FixResolution => fix_resolution_scene::fix_resolution(&mut state),
             State::Play => game_scene::play_tetris(&mut state),
             State::GameOver => game_over_scene::game_over(&mut state),
-            State::Exit => state.set_state(State::Wellcome), // Exit to wellcome
+            State::Exit => break,
         }
     }
+
+    println!("\nGoodbye!");
 }
