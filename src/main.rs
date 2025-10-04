@@ -11,7 +11,7 @@ use game_over::game_over_scene;
 use wellcome::wellcome_scene;
 
 fn main() {
-    let mut state = StateController::new();
+    let mut state = StateController::new(); // 프로그램 상태
 
     loop {
         let current_state = state.get_state();
