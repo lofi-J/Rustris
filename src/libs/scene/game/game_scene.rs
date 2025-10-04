@@ -37,6 +37,11 @@ pub fn game(state: &mut StateController) {
         {
             let mut ctrl = controller.lock().unwrap(); // Get GameController Status
 
+            // if game pause, stop call update()
+            if ctrl.is_game_pause {
+                continue;
+            }
+
             // if game over, break loop
             if ctrl.is_game_over() {
                 break;

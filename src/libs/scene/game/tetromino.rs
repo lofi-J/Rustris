@@ -1,15 +1,5 @@
-#[derive(Clone, Debug)]
-pub enum Tetromino {
-    I,
-    J,
-    L,
-    O,
-    S,
-    T,
-    Z,
-}
+// CONST TETROMINO SHAPE
 
-// 테트로미노 형태 상수 정의
 const SHAPE_I: [[bool; 4]; 4] = [
     [false, false, false, false],
     [true, true, true, true],
@@ -49,34 +39,45 @@ const SHAPE_Z: [[bool; 3]; 3] = [
     [false, false, false],
 ];
 
+pub type TetrominoType = Vec<Vec<bool>>; // mutable vector
+
+#[derive(Debug, Clone)]
+pub struct Tetromino {
+    tetromino: TetrominoType,
+}
+
 impl Tetromino {
-    pub fn get_random_tetromino() -> Self {
-        let tetrominos: Vec<Tetromino> = vec![
-            Tetromino::I,
-            Tetromino::J,
-            Tetromino::L,
-            Tetromino::O,
-            Tetromino::S,
-            Tetromino::T,
-            Tetromino::Z,
+    /// Generate random tetromino
+    pub fn generate_random_tetromino() -> Self {
+        let tetrominos: Vec<TetrominoType> = vec![
+            convert_to_vec(&SHAPE_I),
+            convert_to_vec(&SHAPE_J),
+            convert_to_vec(&SHAPE_L),
+            convert_to_vec(&SHAPE_O),
+            convert_to_vec(&SHAPE_S),
+            convert_to_vec(&SHAPE_T),
+            convert_to_vec(&SHAPE_Z),
         ];
 
         let rand_idx = rand::random_range(0..tetrominos.len());
 
-        tetrominos[rand_idx].clone()
+        Self {
+            tetromino: tetrominos[rand_idx].clone(),
+        }
+    }
+
+    /// Get current tetromino shape
+    pub fn get_shape(&self) -> TetrominoType {
+        self.tetromino.clone()
+    }
+
+    /// Set tetromino shape (used for rotation)
+    pub fn set_shape(&mut self, shape: TetrominoType) {
+        self.tetromino = shape;
     }
 }
 
-impl Tetromino {
-    pub fn get_shape(&self) -> Vec<Vec<bool>> {
-        match self {
-            Tetromino::I => SHAPE_I.iter().map(|row| row.to_vec()).collect(),
-            Tetromino::J => SHAPE_J.iter().map(|row| row.to_vec()).collect(),
-            Tetromino::L => SHAPE_L.iter().map(|row| row.to_vec()).collect(),
-            Tetromino::O => SHAPE_O.iter().map(|row| row.to_vec()).collect(),
-            Tetromino::S => SHAPE_S.iter().map(|row| row.to_vec()).collect(),
-            Tetromino::T => SHAPE_T.iter().map(|row| row.to_vec()).collect(),
-            Tetromino::Z => SHAPE_Z.iter().map(|row| row.to_vec()).collect(),
-        }
-    }
+/// Helper function: Convert 2D array to Vec<Vec<bool>>
+fn convert_to_vec<const N: usize>(arr: &[[bool; N]; N]) -> TetrominoType {
+    arr.iter().map(|row| row.to_vec()).collect()
 }
