@@ -23,6 +23,12 @@ pub fn game(state: &mut StateController) {
         loop {
             {
                 let mut ctrl = controller_clone.lock().unwrap();
+
+                // if game pause, stop call
+                if ctrl.is_game_pause {
+                    continue;
+                }
+
                 if ctrl.is_game_over() {
                     break;
                 }
@@ -35,7 +41,7 @@ pub fn game(state: &mut StateController) {
     // Main rendering loop(game)
     loop {
         {
-            let mut ctrl = controller.lock().unwrap(); // Get GameController Status
+            let ctrl = controller.lock().unwrap(); // Get GameController Status
 
             // if game pause, stop call update()
             if ctrl.is_game_pause {
@@ -46,9 +52,6 @@ pub fn game(state: &mut StateController) {
             if ctrl.is_game_over() {
                 break;
             }
-
-            // Update status every 16ms
-            ctrl.update();
 
             // rendering
             renderer(&mut stdout, &ctrl);

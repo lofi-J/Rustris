@@ -1,5 +1,6 @@
 use std::{
-    io::{self},
+    fs::OpenOptions,
+    io::{self, Write},
     time::Duration,
 };
 
@@ -11,7 +12,15 @@ use crossterm::{
 
 use super::tetromino::Tetromino;
 
-type Board = [[bool; 10]; 20]; // 10 * 20 size board
+type Board = Vec<Vec<bool>>;
+
+enum TetrominoAction {
+    MoveDown,
+    MoveLeft,
+    MoveRight,
+    Rotate,
+    Drop,
+}
 
 /// controller for tetris game
 #[derive(Debug)]
@@ -26,11 +35,10 @@ pub struct GameController {
 
 impl GameController {
     pub fn new() -> Self {
-        println!("GameController Initializing...");
         Self {
             is_game_over: false,
             is_game_pause: false,
-            board: [[false; 10]; 20],
+            board: vec![vec![false; 10]; 20],
             current_tetromino: Tetromino::generate_random_tetromino(),
             preview_tetrominos: vec![
                 Tetromino::generate_random_tetromino(),
@@ -38,6 +46,17 @@ impl GameController {
             ],
             // board coordinate system start at center top (center of 10x20 board = 3~4 position)
             tetromino_pos: (3, 0),
+        }
+    }
+
+    /// debug log TODO remove
+    fn debug_log(&self, message: &str) {
+        if let Ok(mut file) = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("game_debug.log")
+        {
+            let _ = writeln!(file, "{}", message);
         }
     }
 
@@ -51,11 +70,24 @@ impl GameController {
         if event::poll(Duration::from_millis(0)).unwrap() {
             if let Event::Key(key_event) = event::read().unwrap() {
                 match key_event.code {
-                    KeyCode::Up => self.rotate(),
-                    KeyCode::Down => self.move_down(),
-                    KeyCode::Left => self.move_left(),
-                    KeyCode::Right => self.move_right(),
-                    KeyCode::Esc => self.esc_key_input_handler(),
+                    KeyCode::Up => {
+                        self.rotate();
+                    }
+                    KeyCode::Down => {
+                        self.move_down();
+                    }
+                    KeyCode::Left => {
+                        self.move_left();
+                    }
+                    KeyCode::Right => {
+                        self.move_right();
+                    }
+                    KeyCode::Esc => {
+                        self.esc_key_input_handler();
+                    }
+                    KeyCode::Char(' ') => {
+                        self.hard_drop();
+                    }
                     _ => {}
                 }
             }
@@ -114,8 +146,9 @@ impl GameController {
     /// ESC key input handler
     fn esc_key_input_handler(&mut self) {
         let mut stdout = io::stdout();
-        let current_term_status = terminal::is_raw_mode_enabled().unwrap();
-        if current_term_status && !self.is_game_over {
+        let current_term_raw_mode = terminal::is_raw_mode_enabled().unwrap();
+
+        if current_term_raw_mode && !self.is_game_over {
             terminal::disable_raw_mode().unwrap();
             execute!(stdout, cursor::Show).unwrap();
             self.is_game_pause = true;
@@ -126,14 +159,21 @@ impl GameController {
         }
     }
 
-    /// TODO game logic (falling block, collision detection, game over, update score, current tetromino queue syst)
-    pub fn update(&mut self) {
-        // tetromino auto falling
+    /// Hard drop
+    pub fn hard_drop(&mut self) {
+        self.is_collision(TetrominoAction::Drop);
+    }
 
-        // collision
+    /// collision detection
+    fn is_collision(&self, action: TetrominoAction) -> bool {
+        let tetromino = self.current_tetromino.get_shape();
+        let board = self.board.clone();
 
-        // game over
+        self.debug_log(&format!("board: {:?}", board));
 
-        // update score
+        // first move tetromino and check collision
+        // let (tetromino_x, tetromino_y) = self.tetromino_pos;
+
+        false
     }
 }
