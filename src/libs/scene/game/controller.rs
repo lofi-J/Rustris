@@ -7,12 +7,14 @@ use std::{
 use crossterm::{
     cursor,
     event::{self, Event, KeyCode},
-    execute, terminal,
+    execute,
+    style::Color,
+    terminal,
 };
 
 use super::tetromino::Tetromino;
 
-type Board = Vec<Vec<bool>>;
+type Board = Vec<Vec<Option<Color>>>; // None: 빈 칸, Some(Color): 해당 색상의 블록
 
 /// controller for tetris game
 pub struct GameController {
@@ -31,7 +33,7 @@ impl GameController {
         Self {
             is_game_over: false,
             is_game_pause: false,
-            board: vec![vec![false; 10]; 20],
+            board: vec![vec![None; 10]; 20], // None으로 초기화
             current_tetromino: Tetromino::generate_random_tetromino(),
             preview_tetrominos: vec![
                 Tetromino::generate_random_tetromino(),
@@ -210,8 +212,8 @@ impl GameController {
                         return true; // 충돌
                     }
 
-                    // 보드에 이미 블록이 있는지 체크
-                    if self.board[board_y as usize][board_x as usize] {
+                    // 보드에 이미 블록이 있는지 체크 (None이 아니면 블록 있음)
+                    if self.board[board_y as usize][board_x as usize].is_some() {
                         return true; // 충돌
                     }
                 }
@@ -223,6 +225,7 @@ impl GameController {
     /// 테트로미노를 보드에 고정
     fn lock_tetromino(&mut self) {
         let shape = self.current_tetromino.get_shape();
+        let color = self.current_tetromino.get_color(); // 테트로미노 색상 가져오기
         let (x, y) = self.tetromino_pos;
 
         for (row_idx, row) in shape.iter().enumerate() {
@@ -232,7 +235,8 @@ impl GameController {
                     let board_y = y + row_idx as i32;
 
                     if board_x >= 0 && board_x < 10 && board_y >= 0 && board_y < 20 {
-                        self.board[board_y as usize][board_x as usize] = true;
+                        // 색상 정보와 함께 저장
+                        self.board[board_y as usize][board_x as usize] = Some(color);
                     }
                 }
             }
@@ -243,9 +247,9 @@ impl GameController {
     fn clear_lines(&mut self) {
         let mut lines_to_clear = Vec::new();
 
-        // 완성된 라인 찾기
+        // 완성된 라인 찾기 (모든 칸이 Some(Color)로 채워진 라인)
         for (idx, row) in self.board.iter().enumerate() {
-            if row.iter().all(|&cell| cell) {
+            if row.iter().all(|cell| cell.is_some()) {
                 lines_to_clear.push(idx);
             }
         }
@@ -253,7 +257,7 @@ impl GameController {
         // 라인 제거 및 위에서 아래로 블록 내리기
         for &line_idx in lines_to_clear.iter().rev() {
             self.board.remove(line_idx);
-            self.board.insert(0, vec![false; 10]);
+            self.board.insert(0, vec![None; 10]); // None으로 초기화된 새 라인 추가
         }
     }
 

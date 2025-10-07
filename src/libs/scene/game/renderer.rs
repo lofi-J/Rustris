@@ -1,8 +1,11 @@
-use std::io::{Stdout, Write};
+use std::{
+    collections::HashSet,
+    io::{Stdout, Write},
+};
 
 use crossterm::{
     cursor, execute,
-    style::{Color, Print, ResetColor, SetBackgroundColor},
+    style::{Print, ResetColor, SetBackgroundColor, SetForegroundColor},
 };
 
 use crate::libs::utils::terminal::clear_terminal;
@@ -23,6 +26,9 @@ pub fn renderer(stdout: &mut Stdout, controller: &GameController) {
     // 게임 보드 프레임 그리기
     draw_board_frame(stdout);
 
+    // 테트로미노 낙하 가이드라인 그리기
+    draw_guide_lines(stdout, controller);
+
     // 보드에 쌓인 블록들 그리기
     draw_board(stdout, controller);
 
@@ -35,12 +41,54 @@ pub fn renderer(stdout: &mut Stdout, controller: &GameController) {
     stdout.flush().unwrap();
 }
 
+/// 테트로미노 낙하 가이드라인 그리기
+fn draw_guide_lines(stdout: &mut Stdout, controller: &GameController) {
+    let shape = controller.current_tetromino.get_shape();
+    let (tetromino_x, _) = controller.tetromino_pos;
+    let color = controller.current_tetromino.get_color();
+
+    // 테트로미노가 차지하는 x 좌표들을 수집
+    let mut occupied_x_positions = HashSet::new();
+
+    for row in shape.iter() {
+        for (col_idx, &cell) in row.iter().enumerate() {
+            if cell {
+                let board_x = tetromino_x + col_idx as i32;
+                if board_x >= 0 && board_x < 10 {
+                    occupied_x_positions.insert(board_x);
+                }
+            }
+        }
+    }
+
+    // 각 x 좌표의 세로줄에 색상 있는 dot 그리기
+    for &x in occupied_x_positions.iter() {
+        for y in 0..20 {
+            // 화면 좌표로 변환
+            let screen_x = BOARD_START_X + (x as u16 * 2);
+            let screen_y = BOARD_START_Y + y;
+
+            execute!(
+                stdout,
+                cursor::MoveTo(screen_x, screen_y),
+                SetForegroundColor(color),
+                Print("·"),
+                ResetColor
+            )
+            .unwrap();
+        }
+    }
+}
+
 /// 게임 보드 프레임 그리기
 fn draw_board_frame(stdout: &mut Stdout) {
     // 보드 너비: 10칸 × 2문자 = 20문자
     let board_width = 10 * 2;
-    let inner_space = " ".repeat(board_width);
     let border_line = "═".repeat(board_width);
+
+    // 세로 구분선을 위한 점 패턴 생성 (각 셀의 중앙에 점)
+    // 10칸이므로 "· · · · · · · · · ·" 형태
+    let grid_line = (0..10).map(|_| "· ").collect::<String>();
 
     // 상단 테두리
     execute!(
@@ -50,12 +98,12 @@ fn draw_board_frame(stdout: &mut Stdout) {
     )
     .unwrap();
 
-    // 중간 부분 (20줄)
+    // 중간 부분 (20줄) - 점 패턴으로 세로선 표시
     for i in 1..=20 {
         execute!(
             stdout,
             cursor::MoveTo(FRAME_LEFT, FRAME_TOP + i),
-            Print(format!("║{}║", inner_space))
+            Print(format!("║{}║", grid_line))
         )
         .unwrap();
     }
@@ -72,8 +120,9 @@ fn draw_board_frame(stdout: &mut Stdout) {
 /// 보드에 쌓인 블록들 그리기
 fn draw_board(stdout: &mut Stdout, controller: &GameController) {
     for (row_idx, row) in controller.board.iter().enumerate() {
-        for (col_idx, &cell) in row.iter().enumerate() {
-            if cell {
+        for (col_idx, cell) in row.iter().enumerate() {
+            // cell이 Some(Color)인 경우에만 그리기
+            if let Some(color) = cell {
                 // 보드 범위 체크 (0-9, 0-19)
                 if col_idx < 10 && row_idx < 20 {
                     let x = BOARD_START_X + (col_idx as u16 * 2); // 각 셀은 2칸
@@ -82,7 +131,7 @@ fn draw_board(stdout: &mut Stdout, controller: &GameController) {
                     execute!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        SetBackgroundColor(Color::Cyan),
+                        SetBackgroundColor(*color), // 저장된 색상 사용
                         Print(CELL),
                         ResetColor
                     )
@@ -97,6 +146,7 @@ fn draw_board(stdout: &mut Stdout, controller: &GameController) {
 fn draw_current_tetromino(stdout: &mut Stdout, controller: &GameController) {
     let shape = controller.current_tetromino.get_shape();
     let (tetromino_x, tetromino_y) = controller.tetromino_pos;
+    let color = controller.current_tetromino.get_color(); // 테트로미노 고유 색상
 
     for (row_idx, row) in shape.iter().enumerate() {
         for (col_idx, &cell) in row.iter().enumerate() {
@@ -114,7 +164,7 @@ fn draw_current_tetromino(stdout: &mut Stdout, controller: &GameController) {
                     execute!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        SetBackgroundColor(Color::Yellow),
+                        SetBackgroundColor(color),
                         Print(CELL),
                         ResetColor
                     )
@@ -139,6 +189,7 @@ fn draw_preview(stdout: &mut Stdout, controller: &GameController) {
 
     for (idx, tetromino) in controller.preview_tetrominos.iter().enumerate() {
         let shape = tetromino.get_shape();
+        let color = tetromino.get_color(); // 각 테트로미노의 고유 색상
         let offset_y = preview_y + 2 + (idx as u16 * 5);
 
         for (row_idx, row) in shape.iter().enumerate() {
@@ -150,7 +201,7 @@ fn draw_preview(stdout: &mut Stdout, controller: &GameController) {
                     execute!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        SetBackgroundColor(Color::Green),
+                        SetBackgroundColor(color),
                         Print(CELL),
                         ResetColor
                     )
