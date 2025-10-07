@@ -2,14 +2,14 @@ use std::io::{Stdout, Write};
 
 use crossterm::{
     cursor, execute,
-    style::{Color, Print, ResetColor, SetForegroundColor},
+    style::{Color, Print, ResetColor, SetBackgroundColor},
 };
 
 use crate::libs::utils::terminal::clear_terminal;
 
 use super::controller::GameController;
 
-const CELL: &str = "██";
+const CELL: &str = "  "; // 공백 2개로 정사각형에 가까운 형태
 
 pub fn renderer(stdout: &mut Stdout, controller: &GameController) {
     clear_terminal(stdout);
@@ -38,7 +38,7 @@ fn draw_board_frame(stdout: &mut Stdout) {
     execute!(
         stdout,
         cursor::MoveTo(frame_left, frame_top),
-        Print("╔════════════════════════════════════════╗")
+        Print("╔════════════════════╗")
     )
     .unwrap();
 
@@ -47,7 +47,7 @@ fn draw_board_frame(stdout: &mut Stdout) {
         execute!(
             stdout,
             cursor::MoveTo(frame_left, frame_top + i),
-            Print("║                                        ║")
+            Print("║                    ║")
         )
         .unwrap();
     }
@@ -56,7 +56,7 @@ fn draw_board_frame(stdout: &mut Stdout) {
     execute!(
         stdout,
         cursor::MoveTo(frame_left, frame_top + 21),
-        Print("╚════════════════════════════════════════╝")
+        Print("╚════════════════════╝")
     )
     .unwrap();
 }
@@ -71,13 +71,13 @@ fn draw_board(stdout: &mut Stdout, controller: &GameController) {
     for (row_idx, row) in controller.board.iter().enumerate() {
         for (col_idx, &cell) in row.iter().enumerate() {
             if cell {
-                let x = board_start_x + (col_idx as u16 * 4); // 각 셀은 4칸 (██ + 공백)
+                let x = board_start_x + (col_idx as u16 * 2); // 각 셀은 2칸
                 let y = board_start_y + row_idx as u16;
 
                 execute!(
                     stdout,
                     cursor::MoveTo(x, y),
-                    SetForegroundColor(Color::Cyan),
+                    SetBackgroundColor(Color::Cyan),
                     Print(CELL),
                     ResetColor
                 )
@@ -101,13 +101,13 @@ fn draw_current_tetromino(stdout: &mut Stdout, controller: &GameController) {
         for (col_idx, &cell) in row.iter().enumerate() {
             if cell {
                 // 테트로미노 위치를 보드 좌표로 변환
-                let x = board_start_x + ((tetromino_x + col_idx as u16) * 4);
+                let x = board_start_x + ((tetromino_x + col_idx as u16) * 2);
                 let y = board_start_y + tetromino_y + row_idx as u16;
 
                 execute!(
                     stdout,
                     cursor::MoveTo(x, y),
-                    SetForegroundColor(Color::Yellow),
+                    SetBackgroundColor(Color::Yellow),
                     Print(CELL),
                     ResetColor
                 )
@@ -119,7 +119,7 @@ fn draw_current_tetromino(stdout: &mut Stdout, controller: &GameController) {
 
 /// 다음 테트로미노 미리보기 그리기
 fn draw_preview(stdout: &mut Stdout, controller: &GameController) {
-    let preview_x = 55;
+    let preview_x = 35;
     let preview_y = 4;
 
     execute!(
@@ -136,13 +136,13 @@ fn draw_preview(stdout: &mut Stdout, controller: &GameController) {
         for (row_idx, row) in shape.iter().enumerate() {
             for (col_idx, &cell) in row.iter().enumerate() {
                 if cell {
-                    let x = preview_x + (col_idx as u16 * 2);
+                    let x = preview_x + (col_idx as u16 * 2); // CELL 크기에 맞춰 2칸으로 변경
                     let y = offset_y + row_idx as u16;
 
                     execute!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        SetForegroundColor(Color::Green),
+                        SetBackgroundColor(Color::Green),
                         Print(CELL),
                         ResetColor
                     )

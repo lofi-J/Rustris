@@ -1,7 +1,7 @@
 use std::{
     fs::OpenOptions,
     io::{self, Write},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use crossterm::{
@@ -23,7 +23,6 @@ enum TetrominoAction {
 }
 
 /// controller for tetris game
-#[derive(Debug)]
 pub struct GameController {
     pub is_game_over: bool,
     pub is_game_pause: bool,
@@ -31,6 +30,8 @@ pub struct GameController {
     pub current_tetromino: Tetromino,
     pub preview_tetrominos: Vec<Tetromino>,
     pub tetromino_pos: (u16, u16),
+    last_drop_time: Instant,
+    drop_interval: Duration,
 }
 
 impl GameController {
@@ -46,6 +47,8 @@ impl GameController {
             ],
             // board coordinate system start at center top (center of 10x20 board = 3~4 position)
             tetromino_pos: (3, 0),
+            last_drop_time: Instant::now(),
+            drop_interval: Duration::from_millis(500), // 0.5초마다 자동 낙하
         }
     }
 
@@ -66,8 +69,8 @@ impl GameController {
     }
 
     pub fn handle_input(&mut self) {
-        // key input polling (non-blocking)
-        if event::poll(Duration::from_millis(0)).unwrap() {
+        // key input polling (non-blocking, 10ms timeout)
+        if event::poll(Duration::from_millis(10)).unwrap() {
             if let Event::Key(key_event) = event::read().unwrap() {
                 match key_event.code {
                     KeyCode::Up => {
@@ -175,5 +178,27 @@ impl GameController {
         // let (tetromino_x, tetromino_y) = self.tetromino_pos;
 
         false
+    }
+
+    /// 게임 상태 업데이트 (자동 낙하 처리)
+    pub fn update(&mut self) {
+        // 게임이 일시정지 상태면 업데이트하지 않음
+        if self.is_game_pause {
+            return;
+        }
+
+        let now = Instant::now();
+        let elapsed = now.duration_since(self.last_drop_time);
+
+        // 설정된 시간 간격이 지났으면 테트로미노를 아래로 이동
+        if elapsed >= self.drop_interval {
+            self.move_down();
+            self.last_drop_time = now;
+        }
+    }
+
+    /// 낙하 속도 설정 (밀리초 단위)
+    pub fn set_drop_interval(&mut self, millis: u64) {
+        self.drop_interval = Duration::from_millis(millis);
     }
 }
